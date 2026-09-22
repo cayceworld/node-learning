@@ -1,7 +1,8 @@
 const fs = require('fs');
 const fsp = require('fs/promises');
+const path = require('path');
 
-const FILE_PATH = './notes.json';
+const FILE_PATH = path.join(__dirname, 'notes.json');
 
 class NotesParseError extends Error {
     constructor(message, options) {
@@ -18,7 +19,7 @@ function loadNotes() {
     try {
         return JSON.parse(raw);
     } catch (err) {
-        throw new NotesParseError(`Could not parse ${FILE_PATH}: file contains invalid JSON`, { cause: err });
+        throw new NotesParseError(`Could not parse ${FILE_PATH}: file contains invalid JSON`, {cause: err});
     }
 }
 
@@ -27,9 +28,16 @@ function saveNotes(notes) {
 }
 
 async function loadNotesAsync() {
+
+
     try {
         const raw = await fsp.readFile(FILE_PATH, 'utf-8');
-        return JSON.parse(raw);
+
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            throw new NotesParseError(`Could not parse ${FILE_PATH}: file contains invalid JSON`, {cause: e});
+        }
     } catch (err) {
         if (err.code === 'ENOENT') {
             return [];

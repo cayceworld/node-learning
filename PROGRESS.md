@@ -2,33 +2,11 @@
 
 ## Current
 Phase: 0 — Core
-Module: Error Handling
-Status: exercise pending
+Module: Buffers & Streams
+Status: not started
 
 ## Pending exercise
-Working example already built and run: `storage.js` has a custom
-`NotesParseError` class (`extends Error`, sets `this.name`, uses the
-native `{ cause }` option to preserve the original error). `loadNotes()`
-(sync) now catches `JSON.parse` failures and rethrows `NotesParseError`
-instead of letting a raw `SyntaxError` crash the process.
-`demo-error.js` corrupts `notes.json`, calls `loadNotes()`, and shows the
-error caught cleanly via `err instanceof NotesParseError` (unrecognized
-errors are re-thrown, not swallowed).
-
-Exercise not yet done, resume here:
-`loadNotesAsync()` in `storage.js` still has its old single `try/catch`
-around both the read and the parse, so a corrupt-JSON `SyntaxError` falls
-through the `ENOENT` check and gets re-thrown raw (same bug the sync
-version had before the fix). Task: make `loadNotesAsync` throw
-`NotesParseError` (with `cause`) on bad JSON, while still returning `[]`
-on a missing file (`ENOENT`) — decide whether one `try/catch` around both
-operations can distinguish the two failure modes, or whether the read and
-the parse need to be separated.
-
-Review the solution when brought back, then move to Streams/Buffers
-(remaining Phase 0 topics: Events, Buffers, Streams — Streams/Buffers
-tied together via the large-file readFile-vs-Stream milestone, Events
-separately).
+None.
 
 ## Completed
 - Phase 0: Modules — `storage.js` exports `loadNotes`/`saveNotes` via
@@ -51,10 +29,25 @@ separately).
   so it always resolved `undefined`; redundant `.then()` mixed with
   `await` inside `main()` — clarified `await`/try-catch is for inside
   `async function`s, `.then()`/`.catch()` is for code that isn't.
+- Phase 0: Error Handling — custom `NotesParseError` class (`extends
+  Error`, sets `this.name`, uses native `{ cause }`) in `storage.js`.
+  `loadNotes()` (sync) separates the `existsSync` check from the parse so
+  a corrupt file throws `NotesParseError` instead of a raw `SyntaxError`;
+  `demo-error.js` proves it's caught cleanly via
+  `err instanceof NotesParseError` (unrecognized errors rethrown, not
+  swallowed). Exercise: fixed `loadNotesAsync()`, which originally wrapped
+  both `readFile` and `JSON.parse` in one `try/catch` so a corrupt-JSON
+  `SyntaxError` fell through the `ENOENT` check unwrapped. Solution: nest
+  a second `try/catch` around just `JSON.parse` that wraps parse failures
+  into `NotesParseError`; the outer `catch` still branches only on
+  `err.code === 'ENOENT'`, so the rethrown `NotesParseError` (no `.code`)
+  passes through unchanged. Verified against both a corrupt-JSON file and
+  a missing file. Bug hit and fixed: first draft's inner `catch (e)`
+  passed the wrong variable (`err`, out of scope) into
+  `{ cause: err }` instead of `{ cause: e }`.
 
 ## Not started yet
-Phase 0 remainder (Filesystem API exercise in progress, then Async
-programming details, Events, Buffers, Streams, Error Handling), Phase 1
-(Package Managers, CLI, Debugging, Profiling), Phase 2 (Network/API),
-Phase 3 (Data), Phase 4 (Security), Phase 5 (Quality), Phase 6 (Scale),
-Phase 7 (Ship).
+Phase 0 remainder (Buffers, Streams — including the large-file
+readFile-vs-Stream milestone; Events), Phase 1 (Package Managers, CLI,
+Debugging, Profiling), Phase 2 (Network/API), Phase 3 (Data), Phase 4
+(Security), Phase 5 (Quality), Phase 6 (Scale), Phase 7 (Ship).

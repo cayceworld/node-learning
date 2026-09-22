@@ -1,4 +1,4 @@
-const { loadNotes, NotesParseError } = require('./storage');
+const { loadNotes, NotesParseError } = require('../../src/storage');
 
 try {
     loadNotes();

@@ -101,3 +101,29 @@ and handled; programmer errors (bugs) should crash, not be silenced.
 that stores the original error as `.cause` for free. Only catch what you
 know how to handle — re-throw anything else so bugs stay visible instead
 of vanishing silently.
+
+## Nested try/catch: telling apart two failure modes in one async flow
+
+```js
+async function loadNotesAsync() {
+    try {
+        const raw = await fsp.readFile(FILE_PATH, 'utf-8');
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            throw new NotesParseError('...invalid JSON', { cause: e });
+        }
+    } catch (err) {
+        if (err.code === 'ENOENT') return [];
+        throw err; // rethrows NotesParseError untouched (no .code on it)
+    }
+}
+```
+
+`readFile` and `JSON.parse` can each fail for a different reason, and
+they need different handling — `ENOENT` means "no file, return `[]`",
+bad JSON means "wrap and throw". A `SyntaxError` from `JSON.parse` has no
+`.code`, so it can't be mistaken for `ENOENT` in the outer `catch`; a
+`NotesParseError` thrown from the inner `catch` propagates up through the
+outer `catch` too, but `err.code === 'ENOENT'` is `undefined` for it, so
+it falls through to `throw err` and comes out the other side unchanged.

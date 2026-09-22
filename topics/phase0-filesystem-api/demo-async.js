@@ -1,4 +1,4 @@
-const { loadNotesAsync } = require('./storage');
+const { loadNotesAsync } = require('../../src/storage');
 
 console.log('1: calling loadNotesAsync()');
 loadNotesAsync().then((notes) => {
