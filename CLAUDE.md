@@ -56,10 +56,14 @@ Codecademy's "Learn Node.js" (mostly theory) and already built part of
 the Task/Notes API with you (see PROGRESS.md).
 
 ## Project layout
-- The existing Task/Notes API files (`notes.js`, `storage.js`, the demo
-  files) stay untouched until Stage C.
+- Each project gets its own top-level folder; there is no root `src/`.
+- The Task/Notes API lives in `notes-api/` (`notes.js`, `storage.js`).
+  It and the demo files in `topics/` stay untouched until Stage C.
 - Stage A lives in its own subfolder `message-mixer/`.
 - Stage B lives in its own subfolder `rps-server/`.
+- Keep small projects flat (no `src/`). Add a `src/` inside a project
+  only once it has a `package.json`, tests or config beside the code
+  (expected for `notes-api/` in Stage C).
 
 ## Curriculum
 
