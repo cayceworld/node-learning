@@ -127,3 +127,57 @@ bad JSON means "wrap and throw". A `SyntaxError` from `JSON.parse` has no
 `NotesParseError` thrown from the inner `catch` propagates up through the
 outer `catch` too, but `err.code === 'ENOENT'` is `undefined` for it, so
 it falls through to `throw err` and comes out the other side unchanged.
+## Data modules: exporting an array
+
+```js
+// verbs.js
+module.exports = ['ate', 'bought', 'read', 'wrote', 'watched'];
+
+// index.js
+const verbs = require('./verbs'); // verbs is the array itself
+```
+
+`module.exports` can be any value, not just an object of functions.
+Keeping data in its own module means adding words never touches the logic.
+
+## Entry file: wiring modules together
+
+```js
+// index.js — run with `node index.js`
+const nouns = require('./nouns');
+function pickRandom(list) { return list[Math.floor(Math.random() * list.length)]; }
+console.log('The ' + pickRandom(nouns) + '...');
+```
+
+The entry file is the one you start with `node`; it requires the other
+modules and does the visible work. The other modules only export, so
+requiring them has no side effects.
+
+## `process.argv`: reading CLI arguments
+
+```js
+// node index.js 3
+process.argv; // ['/path/to/node', '/path/to/index.js', '3']
+const count = Number(process.argv[2]); // 3 — args always arrive as strings
+```
+
+`process.argv` is a global array of the words typed in the terminal; your
+own arguments start at index 2. Watch out: `Number('banana')` is `NaN`, and
+`typeof NaN === 'number'`, so `typeof` can't tell good input from bad.
+
+## Validating CLI input + exit codes
+
+```js
+function parseCount(arg) {
+    const count = Number(arg);
+    if (arg === undefined) throw new InvalidCountError('No argument was given.');
+    if (!Number.isInteger(count)) throw new InvalidCountError(`${arg} is not a valid input.`);
+    if (count < 1) throw new InvalidCountError('Argument is less than 1.');
+    return count;
+}
+// in the catch: console.error(err.message); process.exitCode = 1;
+```
+
+Bad input should fail loudly, not silently: a clear message on the error
+output, plus a non-zero exit code (`0` = success, anything else = failure)
+so scripts and CI can tell the program failed.
