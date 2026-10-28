@@ -181,3 +181,54 @@ function parseCount(arg) {
 Bad input should fail loudly, not silently: a clear message on the error
 output, plus a non-zero exit code (`0` = success, anything else = failure)
 so scripts and CI can tell the program failed.
+
+## Minimal HTTP server
+
+```js
+const http = require('http');
+let requestCounter = 0; // outside: survives between requests
+
+function handleRequest(request, response) {
+    requestCounter++;
+    console.log(`Request #${requestCounter}`); // shows in the SERVER terminal
+    response.end('hello\n');                   // shows in the CLIENT (curl/browser)
+}
+
+http.createServer(handleRequest).listen(3000);
+```
+
+A server doesn't exit: `listen` keeps it waiting, and Node calls the handler
+once per incoming request (like an event listener). `localhost` means "this
+machine"; other devices need its LAN IP (`hostname -I`) and an open firewall
+port. Restart the server after every code change.
+
+## Reading the request: `request.url` and `request.method`
+
+```js
+function handleRequest(request, response) {
+    console.log(`${request.method} ${request.url}`); // e.g. "GET /play"
+    if (request.method !== 'GET') {
+        response.end('Only GET is supported\n');
+    } else {
+        response.end('hello\n');
+    }
+}
+```
+
+`request.url` is the path after host and port (`/play`, `/favicon.ico`), and
+`request.method` is the uppercase action word (`GET`, `POST`, ...). Browsers
+also ask for `/favicon.ico` (the tab icon) on their own; curl doesn't.
+
+## Query string: `new URL` + `searchParams`
+
+```js
+// request.url === '/play?move=rock'
+const url = new URL(request.url, 'http://localhost'); // base fills in the missing host
+url.pathname;                       // '/play'
+const move = url.searchParams.get('move'); // 'rock', or null if missing, '' if "?move="
+if (move) { /* null and '' are both falsy */ }
+```
+
+The query string is the `key=value&key2=value2` part after `?`: extra details
+for the request. `request.url` contains it, so compare paths with
+`url.pathname`, never with the raw `request.url`.

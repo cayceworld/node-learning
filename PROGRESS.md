@@ -1,9 +1,9 @@
 # Node.js Learning Progress
 
 ## Now
-**Stage B — Rock-Paper-Scissors server**, step 1: minimal server that answers "hello"
+**Stage B — Rock-Paper-Scissors server**, step 4: game logic in its own module
 Status: not started · Pending exercise: none
-(Tutor: begin with a 3-question recall check on Stage A: `process.argv`, `NaN`/`Number.isInteger`, exit codes.)
+(Tutor: recall check on Step 3: query string, `new URL(request.url, base)` + why the base, `searchParams.get` returns `null`/`''`.)
 
 ## Roadmap
 Target dates: not set yet (add once weekly study hours are known).
@@ -20,9 +20,9 @@ Target dates: not set yet (add once weekly study hours are known).
 - [x] Step 4 — Bad input -> clear error message — `parseCount()` throws `InvalidCountError`, usage hint, exit code 1
 
 ### Stage B — Rock-Paper-Scissors server (HTTP) · folder `rps-server/`
-- [ ] Step 1 — Minimal server that answers "hello"
-- [ ] Step 2 — Read URL and method
-- [ ] Step 3 — Parse the query string
+- [x] Step 1 — Minimal server that answers "hello" — `server.js`: `http.createServer(handleRequest)`, logs `Request #N`, reached from phone via LAN IP
+- [x] Step 2 — Read URL and method — logs `Request #N: GET /play`, skips counting `/favicon.ico`, non-GET gets "Only GET is supported"
+- [x] Step 3 — Parse the query string — `new URL()` + `searchParams.get('move')`; `/play?move=rock` answers "You played: rock", missing/empty move gets a hint
 - [ ] Step 4 — Game logic in its own module
 - [ ] Step 5 — JSON response with correct `Content-Type`
 - [ ] Step 6 — 400 / 404 errors
@@ -39,6 +39,7 @@ Target dates: not set yet (add once weekly study hours are known).
 - [ ] Phase 7 Ship: Service Development
 
 ## Shaky topics (re-check later)
+- Exit codes: didn't know what `process.exitCode` is for (re-explained, understood the CI case)
 - `NaN` is of type `'number'` — `typeof` can't detect bad numeric input
 - `util.promisify` — idea understood, needed many explanations; low priority
 - Event loop ordering (`setImmediate` vs `setTimeout` vs I/O callbacks)
@@ -63,3 +64,6 @@ started (Readable, data/end, chunks).
 - Stage A Step 2: Entry file — `message-mixer/index.js` requires the three word modules; starter gave `pickRandom(list)`, user wrote `makeSentence()` (string concatenation, "The adj noun verb the adj noun."). First draft missed the final period (user didn't know the English word "period" — explain English terms simply); fixed and cleaned up TODO comments.
 - Stage A Step 3: `process.argv` — `Number(process.argv[2])` + `for` loop prints N sentences. Bug: added `if (typeof targetCalls === 'number')` guard, which is always true (`typeof NaN === 'number'`); with no/bad arg it silently printed nothing. Used as the motivation for Step 4.
 - Stage A Step 4: Input validation — starter gave `InvalidCountError`, try/catch with `console.error` + `process.exitCode = 1`; user wrote `parseCount(arg)`: `undefined` check first, then `!Number.isInteger(count)`, then `count < 1`. First draft left a debug `console.log(count)` and missing semicolons; fixed, and the error message now includes the bad value. Note: tutor replaced the user's Step 3 `if (typeof ...)` block in the Step 4 starter without discussing it first — user objected. Always review/discuss the user's own code before replacing it in a starter.
+- Stage B Step 1: Minimal server — `rps-server/server.js`, `http.createServer(handleRequest)` + `server.listen(3000)`, user added module-level `requestCounter` (correctly outside the handler) and `response.end('hello\n')`. Recall check: Q1/Q2 ok, Q3 failed (exit codes; tutor had added `process.exitCode` in Stage A without explaining) — re-explained via CI, check answered correctly. Confusions resolved: expected logs without any request (handler is called by Node, not by our code; server vs client terminal); where `localhost` comes from; phone couldn't connect — first used tutor's example IP `192.168.1.25` (real one `192.168.0.130`, `hostname -I`), then `ufw` was active and dropped the connection; fixed with `sudo ufw allow 3000/tcp` (remind to remove later). Bugs: `'/n'` instead of `'\n'`, forgot to restart server after editing. Leftover: missing semicolons, counter declared between comment and function.
+- Stage B Step 2: URL and method, done as two parts. Bridge question "why +2 per browser load?" — guessed "connection check, then response"; explained `/favicon.ico`. Part 1: `request.url`; task was log the path + don't count favicon. First draft did the favicon `if` but forgot to put the path in the log, and used an unneeded `.trim()` (explained URLs never contain raw spaces, `%20`). Part 2: `request.method`; log `GET /play`, non-GET answers a text message (status codes deferred to Step 6). Correct first try except typo `supporter`. Tutor didn't edit user's file this time — gave the change as a task instead (per memory rule). User skipped optional cleanup (semicolons/counter position) twice; told them it's their choice, stop mentioning it.
+- Stage B Step 3: Query string — demoed `new URL(path, 'http://localhost')` via `node -e` (no file). Problem-first: `request.url` includes `?move=rock`, so `=== '/play'` breaks. User's task: parse URL, log pathname + move, favicon check on pathname, `/play` with/without move. First draft correct for all listed cases; bugs: `?move=` (empty string) passed the `!== null` check -> "You played: "; `searchParams.get('move')` called 4 times and a redundant `=== null` else-if. Fixed: `const move`, nested `if (url.pathname === '/play') { if (move) ... }` — falsy check covers `null` and `''`. Typo `supporter` from Step 2 fixed.
