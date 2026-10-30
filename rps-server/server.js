@@ -1,4 +1,5 @@
 const http = require('http');
+const game = require('./game');
 
 const PORT = 3000;
 
@@ -9,19 +10,21 @@ let requestCounter = 0;
 
 function handleRequest(request, response) {
     const url = new URL(request.url, 'http://localhost');
-    const move = url.searchParams.get('move');
+    const playerMove = url.searchParams.get('move');
 
     if (url.pathname !== '/favicon.ico') {
         requestCounter++;
-        console.log(`Request #${requestCounter}: ${request.method} ${url.pathname} move=${move}`);
+        console.log(`Request #${requestCounter}: ${request.method} ${url.pathname} move=${playerMove}`);
     }
 
     if (request.method !== 'GET') {
         response.end('Only GET is supported\n');
     } else {
         if (url.pathname === '/play') {
-            if (move) {
-                response.end(`You played: ${move}\n`);
+            if (playerMove) {
+                const computerMove = game.pickComputerMove();
+
+                response.end(`You: ${playerMove}, computer: ${computerMove} -> ${game.decideWinner(playerMove, computerMove)}\n`);
             } else {
                 response.end('Please send a move, e.g. /play?move=rock\n');
             }

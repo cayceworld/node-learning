@@ -232,3 +232,25 @@ if (move) { /* null and '' are both falsy */ }
 The query string is the `key=value&key2=value2` part after `?`: extra details
 for the request. `request.url` contains it, so compare paths with
 `url.pathname`, never with the raw `request.url`.
+
+## Logic module: rules separate from HTTP
+
+```js
+// game.js: knows nothing about request/response
+function decideWinner(playerMove, computerMove) {
+    if (playerMove === computerMove) return 'draw';
+    if (playerMove === 'rock' && computerMove === 'scissors' ||
+        playerMove === 'paper' && computerMove === 'rock' ||
+        playerMove === 'scissors' && computerMove === 'paper') return 'win';
+    return 'lose';
+}
+module.exports = { MOVES, pickComputerMove, decideWinner };
+
+// server.js: only reads the move and sends the answer
+const game = require('./game');
+```
+
+Keeping the rules in their own module means you can test them without a
+server: `node -e "const g = require('./game'); console.log(g.decideWinner('rock', 'scissors'))"`.
+Careful: a comma inside `if (a, b, c)` is the comma operator and checks only
+`c`. Use `||` for "or".
