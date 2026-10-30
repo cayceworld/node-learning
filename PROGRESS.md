@@ -1,7 +1,7 @@
 # Node.js Learning Progress
 
 ## Now
-**Stage B — Rock-Paper-Scissors server**, step 5: JSON response with correct `Content-Type`
+**Stage B — Rock-Paper-Scissors server**, step 6: 400 / 404 errors
 Status: not started · Pending exercise: none
 
 ## Roadmap
@@ -23,7 +23,7 @@ Target dates: not set yet (add once weekly study hours are known).
 - [x] Step 2 — Read URL and method — logs `Request #N: GET /play`, skips counting `/favicon.ico`, non-GET gets "Only GET is supported"
 - [x] Step 3 — Parse the query string — `new URL()` + `searchParams.get('move')`; `/play?move=rock` answers "You played: rock", missing/empty move gets a hint
 - [x] Step 4 — Game logic in its own module — `game.js` exports `MOVES`, `pickComputerMove()`, `decideWinner()`; `/play?move=rock` answers "You: rock, computer: scissors -> win"
-- [ ] Step 5 — JSON response with correct `Content-Type`
+- [x] Step 5 — JSON response with correct `Content-Type` — `/play?move=rock` sends `{"playerMove","computerMove","result"}` with `Content-Type: application/json`; other answers stay plain text
 - [ ] Step 6 — 400 / 404 errors
 - [ ] Step 7 — Read a POST body (Buffers, Streams, Events)
 
@@ -38,6 +38,7 @@ Target dates: not set yet (add once weekly study hours are known).
 - [ ] Phase 7 Ship: Service Development
 
 ## Shaky topics (re-check later)
+- Restart the server after code changes (forgot in Steps 1, 4 and 5)
 - Exit codes: didn't know what `process.exitCode` is for (re-explained, understood the CI case)
 - `searchParams.get`: missing key -> `null`, empty `?move=` -> `''` (recall check said both `null`)
 - `NaN` is of type `'number'` — `typeof` can't detect bad numeric input
@@ -68,3 +69,4 @@ started (Readable, data/end, chunks).
 - Stage B Step 2: URL and method, done as two parts. Bridge question "why +2 per browser load?" — guessed "connection check, then response"; explained `/favicon.ico`. Part 1: `request.url`; task was log the path + don't count favicon. First draft did the favicon `if` but forgot to put the path in the log, and used an unneeded `.trim()` (explained URLs never contain raw spaces, `%20`). Part 2: `request.method`; log `GET /play`, non-GET answers a text message (status codes deferred to Step 6). Correct first try except typo `supporter`. Tutor didn't edit user's file this time — gave the change as a task instead (per memory rule). User skipped optional cleanup (semicolons/counter position) twice; told them it's their choice, stop mentioning it.
 - Stage B Step 3: Query string — demoed `new URL(path, 'http://localhost')` via `node -e` (no file). Problem-first: `request.url` includes `?move=rock`, so `=== '/play'` breaks. User's task: parse URL, log pathname + move, favicon check on pathname, `/play` with/without move. First draft correct for all listed cases; bugs: `?move=` (empty string) passed the `!== null` check -> "You played: "; `searchParams.get('move')` called 4 times and a redundant `=== null` else-if. Fixed: `const move`, nested `if (url.pathname === '/play') { if (move) ... }` — falsy check covers `null` and `''`. Typo `supporter` from Step 2 fixed.
 - Stage B Step 4: Logic module — tutor's starter `rps-server/game.js` gave `MOVES` + `pickComputerMove()`; user wrote `decideWinner(playerMove, computerMove)` and wired `require('./game')` into `server.js` (renamed `move` -> `playerMove`, plain-text answer). Learned `node -e` for quick module checks. Bug: joined the three win conditions with commas inside `else if (...)` -> comma operator, only the last condition counted (1 win out of 9 matchups instead of 3); fixed with `||`. Running server wasn't restarted after the fix (curl still gave `paper vs rock -> lose`). Recall check before the step: Q1 claimed `request.url === '/play'` doesn't fail (it does with a query string), Q2 ok, Q3 said `?move=` gives `null` (it's `''`) — re-explained with `node -e` output.
+- Stage B Step 5: JSON + `Content-Type` — header introduced as "label on the parcel", `response.setHeader` before `end`, checked with `curl -i`. User built `responseData` object + `JSON.stringify`. Bug: first draft called `setHeader('Content-Type', 'application/json')` at the top of `handleRequest`, so plain-text answers (`hello`, move hint) were labeled JSON too; moved into the `/play`-with-move branch. Kept the empty-string placeholder object filled property by property (works; tutor suggested building it in one go — user's choice, don't repeat). Forgot to restart the server after the fix again; tutor verified the code on a copy on port 3099.

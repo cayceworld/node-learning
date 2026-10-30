@@ -254,3 +254,15 @@ Keeping the rules in their own module means you can test them without a
 server: `node -e "const g = require('./game'); console.log(g.decideWinner('rock', 'scissors'))"`.
 Careful: a comma inside `if (a, b, c)` is the comma operator and checks only
 `c`. Use `||` for "or".
+
+## JSON response: `Content-Type` header
+
+```js
+response.setHeader('Content-Type', 'application/json'); // before end()
+response.end(JSON.stringify({ playerMove, computerMove, result }));
+```
+
+A response header is a `Name: value` line sent before the body that describes
+it; `Content-Type` names the body's format. Set it only on responses that
+really are JSON, or clients like `fetch(...).then(r => r.json())` will fail.
+Check headers with `curl -i`.

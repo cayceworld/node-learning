@@ -22,9 +22,15 @@ function handleRequest(request, response) {
     } else {
         if (url.pathname === '/play') {
             if (playerMove) {
-                const computerMove = game.pickComputerMove();
+                const responseData = {playerMove: '', computerMove: '', result: ''};
+                response.setHeader('Content-Type', 'application/json');
 
-                response.end(`You: ${playerMove}, computer: ${computerMove} -> ${game.decideWinner(playerMove, computerMove)}\n`);
+                const computerMove = game.pickComputerMove();
+                responseData.playerMove = playerMove;
+                responseData.computerMove = computerMove;
+                responseData.result = game.decideWinner(playerMove, computerMove);
+
+                response.end(JSON.stringify(responseData) + '\n');
             } else {
                 response.end('Please send a move, e.g. /play?move=rock\n');
             }
