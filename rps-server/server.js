@@ -1,5 +1,6 @@
 const http = require('http');
 const game = require('./game');
+const {MOVES} = require("./game");
 
 const PORT = 3000;
 
@@ -18,25 +19,36 @@ function handleRequest(request, response) {
     }
 
     if (request.method !== 'GET') {
+        response.statusCode = 405;
         response.end('Only GET is supported\n');
     } else {
         if (url.pathname === '/play') {
             if (playerMove) {
-                const responseData = {playerMove: '', computerMove: '', result: ''};
-                response.setHeader('Content-Type', 'application/json');
+                if (!MOVES.includes(playerMove)) {
+                    response.statusCode = 400;
+                    response.end(`${playerMove} is not on the list of available moves: ${MOVES}` + '\n')
+                } else {
+                    const responseData = {playerMove: '', computerMove: '', result: ''};
+                    response.setHeader('Content-Type', 'application/json');
 
-                const computerMove = game.pickComputerMove();
-                responseData.playerMove = playerMove;
-                responseData.computerMove = computerMove;
-                responseData.result = game.decideWinner(playerMove, computerMove);
+                    const computerMove = game.pickComputerMove();
+                    responseData.playerMove = playerMove;
+                    responseData.computerMove = computerMove;
+                    responseData.result = game.decideWinner(playerMove, computerMove);
 
-                response.end(JSON.stringify(responseData) + '\n');
+                    response.end(JSON.stringify(responseData) + '\n');
+                }
+
             } else {
+                response.statusCode = 400;
                 response.end('Please send a move, e.g. /play?move=rock\n');
             }
 
-        } else {
+        } else if (url.pathname === '/') {
             response.end('hello\n');
+        } else {
+            response.statusCode = 404;
+            response.end(`Not found: ${url.pathname}\n`);
         }
 
     }

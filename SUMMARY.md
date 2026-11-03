@@ -266,3 +266,20 @@ A response header is a `Name: value` line sent before the body that describes
 it; `Content-Type` names the body's format. Set it only on responses that
 really are JSON, or clients like `fetch(...).then(r => r.json())` will fail.
 Check headers with `curl -i`.
+
+## Status codes: 400 / 404 / 405
+
+```js
+if (!game.MOVES.includes(playerMove)) {
+    response.statusCode = 400;              // before end(), like headers
+    response.end(`${playerMove} is not a valid move\n`);
+}
+// ...
+response.statusCode = 404;                  // unknown path
+response.end(`Not found: ${url.pathname}\n`);
+```
+
+A status code is a 3-digit number on the first line of the response that says
+how the request went: 200 OK, 400 bad input from the client, 404 no such path,
+405 path exists but not for this method. If you don't set it, Node sends 200,
+so errors look like successes to clients that check `res.ok` / `res.status`.

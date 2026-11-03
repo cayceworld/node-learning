@@ -1,7 +1,7 @@
 # Node.js Learning Progress
 
 ## Now
-**Stage B — Rock-Paper-Scissors server**, step 6: 400 / 404 errors
+**Stage B — Rock-Paper-Scissors server**, step 7: read a POST body (Buffers, Streams, Events)
 Status: not started · Pending exercise: none
 
 ## Roadmap
@@ -24,7 +24,7 @@ Target dates: not set yet (add once weekly study hours are known).
 - [x] Step 3 — Parse the query string — `new URL()` + `searchParams.get('move')`; `/play?move=rock` answers "You played: rock", missing/empty move gets a hint
 - [x] Step 4 — Game logic in its own module — `game.js` exports `MOVES`, `pickComputerMove()`, `decideWinner()`; `/play?move=rock` answers "You: rock, computer: scissors -> win"
 - [x] Step 5 — JSON response with correct `Content-Type` — `/play?move=rock` sends `{"playerMove","computerMove","result"}` with `Content-Type: application/json`; other answers stay plain text
-- [ ] Step 6 — 400 / 404 errors
+- [x] Step 6 — 400 / 404 errors — `response.statusCode`: missing/unknown move -> 400, unknown path -> 404, non-GET -> 405; `/` stays 200 `hello`
 - [ ] Step 7 — Read a POST body (Buffers, Streams, Events)
 
 ### Stage C — Task/Notes API, EPAM colleague's list (steps get defined when reached)
@@ -38,7 +38,7 @@ Target dates: not set yet (add once weekly study hours are known).
 - [ ] Phase 7 Ship: Service Development
 
 ## Shaky topics (re-check later)
-- Restart the server after code changes (forgot in Steps 1, 4 and 5)
+- Restart the server after code changes (forgot in Steps 1, 4, 5 and 6)
 - Exit codes: didn't know what `process.exitCode` is for (re-explained, understood the CI case)
 - `searchParams.get`: missing key -> `null`, empty `?move=` -> `''` (recall check said both `null`)
 - `NaN` is of type `'number'` — `typeof` can't detect bad numeric input
@@ -70,3 +70,4 @@ started (Readable, data/end, chunks).
 - Stage B Step 3: Query string — demoed `new URL(path, 'http://localhost')` via `node -e` (no file). Problem-first: `request.url` includes `?move=rock`, so `=== '/play'` breaks. User's task: parse URL, log pathname + move, favicon check on pathname, `/play` with/without move. First draft correct for all listed cases; bugs: `?move=` (empty string) passed the `!== null` check -> "You played: "; `searchParams.get('move')` called 4 times and a redundant `=== null` else-if. Fixed: `const move`, nested `if (url.pathname === '/play') { if (move) ... }` — falsy check covers `null` and `''`. Typo `supporter` from Step 2 fixed.
 - Stage B Step 4: Logic module — tutor's starter `rps-server/game.js` gave `MOVES` + `pickComputerMove()`; user wrote `decideWinner(playerMove, computerMove)` and wired `require('./game')` into `server.js` (renamed `move` -> `playerMove`, plain-text answer). Learned `node -e` for quick module checks. Bug: joined the three win conditions with commas inside `else if (...)` -> comma operator, only the last condition counted (1 win out of 9 matchups instead of 3); fixed with `||`. Running server wasn't restarted after the fix (curl still gave `paper vs rock -> lose`). Recall check before the step: Q1 claimed `request.url === '/play'` doesn't fail (it does with a query string), Q2 ok, Q3 said `?move=` gives `null` (it's `''`) — re-explained with `node -e` output.
 - Stage B Step 5: JSON + `Content-Type` — header introduced as "label on the parcel", `response.setHeader` before `end`, checked with `curl -i`. User built `responseData` object + `JSON.stringify`. Bug: first draft called `setHeader('Content-Type', 'application/json')` at the top of `handleRequest`, so plain-text answers (`hello`, move hint) were labeled JSON too; moved into the `/play`-with-move branch. Kept the empty-string placeholder object filled property by property (works; tutor suggested building it in one go — user's choice, don't repeat). Forgot to restart the server after the fix again; tutor verified the code on a copy on port 3099.
+- Stage B Step 6: Status codes — idea: 3-digit number on the response's first line, `response.statusCode = N` before `end()`, default 200. Problem shown live with `curl -i`: `?move=banana` and `/nonsense` both gave `200 OK`. User added 400 (missing/empty move), 400 with `MOVES.includes()` + message listing valid moves, 404 for unknown paths, 405 for non-GET. Bug: first draft turned the final `else` into the 404, so `/` also returned 404 (`hello Not found: /`); fixed with an `else if (url.pathname === '/')` branch. User rightly complained the task was unclear: `/` was only a side note and missing from the curl checklist — always list every expected case with its status code in the checklist. Didn't restart the server after the fix again; verified on a copy on port 3099. Leftovers: `game` and `{MOVES}` both required from `./game`; `'hello'` lost its `\n`. Before the step the user asked for notebook notes; gave URL parts diagram (protocol, hostname, port, pathname, search, hash; hash never sent; `request.url` = pathname + query only).
